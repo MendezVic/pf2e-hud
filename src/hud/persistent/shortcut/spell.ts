@@ -3,12 +3,9 @@ import {
     CharacterPF2e,
     ConsumablePF2e,
     CreaturePF2e,
-    itemIsEquipped,
     localize,
     OneToTen,
     R,
-    ROMAN_RANKS,
-    RomanRank,
     SpellCollection,
     SpellPF2e,
     ValueAndMax,
@@ -17,6 +14,7 @@ import {
     zDocumentId,
     zSpellcastingEntryId,
 } from "foundry-helpers";
+import { itemIsEquipped, ROMAN_RANKS, RomanRank } from "compat";
 import { CustomSpellcastingEntry, isAnimistEntry, isFocusCantrip, SPELL_CATEGORIES, SPELL_CATEGORY_TYPES } from "hud";
 import {
     getItemSlug,

@@ -30,7 +30,6 @@ import {
     render,
     ResourceData,
     selectTokens,
-    SYSTEM,
     toggleHooksAndWrappers,
     TokenDocumentPF2e,
     TokenPF2e,
@@ -38,6 +37,7 @@ import {
     VideoFilePath,
     waitDialog,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { hud } from "main";
 import { PersistentEffectsPF2eHUD, PersistentShortcutsPF2eHUD, ShortcutSource } from ".";
 import {

@@ -1,8 +1,8 @@
 {
     "name": "pf2e-hud",
     "scripts": {
-        "scss": "sass --style=compressed --quiet --no-charset styles/%npm_package_name%.scss:styles/%npm_package_name%.css",
-        "build": "esbuild src/main.ts --bundle --keep-names --minify --sourcemap --outdir=scripts",
+        "scss": "sass --style=compressed --quiet --no-charset styles/pf2e-hud.scss:styles/pf2e-hud.css",
+        "build": "npm run scss && esbuild src/main.ts --bundle --keep-names --minify --sourcemap --outdir=scripts",
         "dev": "esbuild src/main.ts --bundle --keep-names --watch --sourcemap --outdir=scripts"
     },
     "author": "Idle",
@@ -23,5 +23,9 @@
     "dependencies": {
         "foundry-helpers": "github:reonZ/foundry-helpers",
         "sortablejs": "^1.15.2"
+    },
+    "allowScripts": {
+        "esbuild@0.20.2": true,
+        "@parcel/watcher@2.5.4": true
     }
 }

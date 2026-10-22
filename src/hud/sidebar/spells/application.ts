@@ -4,7 +4,6 @@ import {
     CreaturePF2e,
     dataToDatasetString,
     getEquipAnnotation,
-    itemIsEquipped,
     localeCompare,
     OneToTen,
     R,
@@ -14,6 +13,7 @@ import {
     SpellPF2e,
     ValueAndMax,
 } from "foundry-helpers";
+import { itemIsEquipped } from "compat";
 import { spellSlotGroupIdToNumber } from "foundry-helpers/dist";
 import { addListenerAll } from "foundry-helpers/src";
 import {

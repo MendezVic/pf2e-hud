@@ -7,8 +7,8 @@ import {
     R,
     SaveType,
     signedInteger,
-    SYSTEM,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import {
     BaseSidebarItem,
     BaseStatisticAction,

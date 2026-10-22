@@ -1,4 +1,5 @@
-import { localize, R, render, SYSTEM, ZeroToFour } from "foundry-helpers";
+import { SYSTEM } from "compat";
+import { localize, R, render, ZeroToFour } from "foundry-helpers";
 import { ControlledToken } from ".";
 
 const SEARCH_UUID = SYSTEM.itemUuid(

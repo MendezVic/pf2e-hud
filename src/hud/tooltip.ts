@@ -13,9 +13,9 @@ import {
     localize,
     R,
     render,
-    SYSTEM,
     TokenPF2e,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { getEntryFromHealthData } from "health-status";
 import { hudIsHidden } from "scene";
 

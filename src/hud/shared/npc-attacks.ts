@@ -1,4 +1,5 @@
-import { ImageFilePath, isAreaOrAutoFireType, MeleePF2e, MODULE, R, SYSTEM, WeaponPF2e } from "foundry-helpers";
+import { SYSTEM } from "compat";
+import { ImageFilePath, isAreaOrAutoFireType, MeleePF2e, MODULE, R, WeaponPF2e } from "foundry-helpers";
 
 const DEFAULT_NPC_STRIKE_ICON = "icons/default-icons/melee.svg";
 

@@ -7,9 +7,9 @@ import {
     InitiativeRollResult,
     R,
     SpellPF2e,
-    SYSTEM,
     ValueAndMax,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { eventToRollParams } from "foundry-helpers/dist";
 
 const COVER_UUID = SYSTEM.itemUuid(

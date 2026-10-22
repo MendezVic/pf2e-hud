@@ -69,8 +69,8 @@ async function rollRecallKnowledge(actor: CreaturePF2e) {
     ChatMessagePF2e.create({
         flavor: await render("recall-knowledge", templateData),
         speaker: ChatMessage.getSpeaker({ actor }),
-        whisper: isSecret ? (ChatMessage.getWhisperRecipients("GM") as any) : undefined,
-        blind: isSecret,
+        whisper: undefined,
+        blind: false,
         rolls: [roll] as any,
     });
 }

@@ -1,4 +1,5 @@
-import { ConsumablePF2e, ItemPF2e, OneToTen, ROMAN_RANKS, RomanRank } from "foundry-helpers";
+import { ROMAN_RANKS, RomanRank } from "compat";
+import { ConsumablePF2e, ItemPF2e, OneToTen } from "foundry-helpers";
 
 function getItemSlug(item: ItemPF2e): string {
     if (item.isOfType("consumable") && item.system.spell) {
@@ -18,7 +19,7 @@ function getConsumableRank(item: Maybe<ConsumablePF2e>, roman?: boolean) {
     const rank = item?.system.spell
         ? (item.system.spell.system.location.heightenedLevel ?? item.system.spell.system.level.value)
         : undefined;
-    return rank && roman ? ROMAN_RANKS[rank] : rank;
+    return rank && roman ? ROMAN_RANKS[rank as OneToTen] : rank;
 }
 
 export { getItemSlug };

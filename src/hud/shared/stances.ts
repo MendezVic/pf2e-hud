@@ -12,9 +12,8 @@ import {
     isSupressedFeat,
     ItemUUID,
     R,
-    SYSTEM,
 } from "foundry-helpers";
-import { createDuplicateMap } from "foundry-helpers/src";
+import { createDuplicateMap, SYSTEM } from "compat";
 
 const REPLACERS: Map<ItemUUID, { replace: () => ItemUUID; effect: ItemUUID }> = createDuplicateMap([
     [

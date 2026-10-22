@@ -22,16 +22,14 @@ import {
     R,
     render,
     RolledCombatant,
-    saveNewInitiativeOrder,
     setFlag,
-    setInitiativeFromDrop,
     settingPath,
-    SYSTEM,
     toggleHooksAndWrappers,
     TokenPF2e,
     unsetFlag,
     waitDialog,
 } from "foundry-helpers";
+import { saveNewInitiativeOrder, setInitiativeFromDrop, SYSTEM } from "compat";
 import { getEntryFromHealthData } from "health-status";
 import { getHealthStatusData } from "settings";
 import Sortable, { SortableEvent } from "sortablejs";

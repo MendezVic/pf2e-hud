@@ -21,10 +21,10 @@ import {
     SingleCheckActionVariantData,
     SkillActionOptions,
     SkillSlug,
-    SYSTEM,
     waitDialog,
     ZeroToTwo,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { getActionIcon } from "foundry-helpers/dist";
 import { createDraggable, ExtrasActionData, FilterValue, SkillActionData, SkillVariants } from "hud";
 
@@ -286,7 +286,20 @@ abstract class BaseStatisticAction<
                 statistic: usedOptions.statistic,
                 notes: usedOptions.notes,
             });
-            action.use(rollOptions);
+
+            if (actionKey === "recall-knowledge") {
+                const recallKnowledgeAction = action as Action & { traits: string[] };
+                const originalTraits = recallKnowledgeAction.traits;
+
+                recallKnowledgeAction.traits = originalTraits.filter((trait) => trait !== "secret");
+                try {
+                    await action.use(rollOptions);
+                } finally {
+                    recallKnowledgeAction.traits = originalTraits;
+                }
+            } else {
+                action.use(rollOptions);
+            }
         } else if (action) {
             foundry.utils.mergeObject(rollOptions, {
                 skill: usedOptions.statistic,

@@ -7,8 +7,8 @@ import {
     ItemPF2e,
     R,
     RollOptionToggle,
-    SYSTEM,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { BaseSidebarItem, SidebarName, SidebarPF2eHUD, ToggleShortcutSource } from "hud";
 
 const ROLLOPTIONS_PLACEMENT = {

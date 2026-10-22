@@ -1,4 +1,5 @@
-import { ActorPF2e, findItemWithSourceId, localize, SYSTEM, waitDialog } from "foundry-helpers";
+import { SYSTEM } from "compat";
+import { ActorPF2e, findItemWithSourceId, localize, waitDialog } from "foundry-helpers";
 
 const RESOLVE_UUID = SYSTEM.itemUuid(
     "Compendium.pf2e.feats-srd.Item.jFmdevE4nKevovzo",

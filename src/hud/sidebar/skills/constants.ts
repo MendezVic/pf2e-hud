@@ -1,4 +1,5 @@
-import { ImageFilePath, R, SYSTEM } from "foundry-helpers";
+import { SYSTEM } from "compat";
+import { ImageFilePath, R } from "foundry-helpers";
 import { RawBaseActionData, StatisticType } from "..";
 
 const FOLLOW_THE_EXPERT = SYSTEM.itemUuid(
