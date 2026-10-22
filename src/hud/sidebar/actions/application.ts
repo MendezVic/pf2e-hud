@@ -6,8 +6,8 @@ import {
     htmlClosest,
     ItemPF2e,
     setFlag,
-    SYSTEM,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { FilterValue, TextHudPopup } from "hud";
 import {
     ActionSection,

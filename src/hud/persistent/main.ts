@@ -30,7 +30,6 @@ import {
     render,
     ResourceData,
     selectTokens,
-    SYSTEM,
     toggleHooksAndWrappers,
     TokenDocumentPF2e,
     TokenPF2e,
@@ -38,6 +37,7 @@ import {
     VideoFilePath,
     waitDialog,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { hud } from "main";
 import { PersistentEffectsPF2eHUD, PersistentShortcutsPF2eHUD, ShortcutSource } from ".";
 import {
@@ -231,6 +231,15 @@ class PersistentPF2eHUD
                 scope: "user",
                 onChange: () => {
                     this.shortcutsPanel.render();
+                },
+            },
+            {
+                key: "tokenAvatar",
+                type: Boolean,
+                default: false,
+                scope: "user",
+                onChange: () => {
+                    this.render();
                 },
             },
             {
@@ -640,8 +649,11 @@ class PersistentPF2eHUD
 
         if (context.hasActor) {
             const worldActor = this.worldActor!;
-            const avatarData = getAvatarData(worldActor);
-            const src = avatarData?.src ?? worldActor.img;
+            const avatarData = getAvatarData(worldActor, false);
+            const src =
+                avatarData?.src ||
+                (worldActor.type === "npc" && this.settings.tokenAvatar && worldActor.prototypeToken.texture.src) ||
+                worldActor.img;
             const isVideo = foundry.helpers.media.VideoHelper.hasVideoExtension(src);
 
             const avatar: PersistentContext["avatar"] = {
@@ -1444,6 +1456,7 @@ type PersistentSettings = {
     shiftEffect: boolean;
     showEffects: boolean;
     slots: number;
+    tokenAvatar: boolean;
 };
 
 type MenuToggleKey = keyof typeof PersistentPF2eHUD.MENU_TOGGLES;

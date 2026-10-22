@@ -11,8 +11,8 @@ import {
     getFirstActiveToken,
     htmlQuery,
     isInstanceOf,
-    SYSTEM,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { PersistentPartPF2eHUD } from ".";
 
 class PersistentEffectsPF2eHUD extends PersistentPartPF2eHUD {

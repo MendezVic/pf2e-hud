@@ -2,6 +2,7 @@ import {
     ActorPF2e,
     AmmoPF2e,
     AttackAction,
+    CharacterAttack,
     CharacterStrike,
     CreaturePF2e,
     ImageFilePath,
@@ -17,7 +18,7 @@ import { getActionCategory, getNpcStrikeImage, getStrikeActions, simulateReload 
 import { AttackShortcut, zAttackShortcut } from ".";
 import { ShortcutCost, ShortcutData, ShortcutLabel, ShortcutRadialOption, ShortcutRadialSection } from "..";
 
-const DRAW_AUXILIARY_ANNOTATION = ["draw", "pick-up", "retrieve"];
+const DRAW_AUXILIARY_ANNOTATION = ["draw", "grip", "pick-up", "retrieve"] as const;
 
 const zStrikeShortcut = zAttackShortcut("strike").extend({
     attachment: z.boolean().default(false),
@@ -29,11 +30,11 @@ class StrikeShortcut extends AttackShortcut<
     MeleePF2e<CreaturePF2e> | WeaponPF2e<CreaturePF2e>,
     AttackAction | CharacterStrike
 > {
+    #actorIsNPC!: boolean;
     #ammo!: AmmoPF2e<ActorPF2e> | WeaponPF2e<ActorPF2e> | null;
     #damageType?: string | null;
     #drawAuxiliaries!: WeaponAuxiliaryAction[];
     #isEquipped!: boolean;
-    #actorIsNPC!: boolean;
     #strikeItem: Maybe<StrikeItem>;
     #uses!: ValueAndMaybeMax | null;
 
@@ -47,17 +48,20 @@ class StrikeShortcut extends AttackShortcut<
         this.#actorIsNPC = this.actor.isOfType("npc");
         this.#strikeItem = this.#getItem();
 
-        const ammo = (this.#ammo = this.item && "ammo" in this.item ? this.item.ammo : null);
+        const item = this.item;
+        const ammo = (this.#ammo = item && "ammo" in item ? item.ammo : null);
 
         this.#uses =
-            (ammo?.isOfType("ammo") && ammo.uses.max > 1 && ammo.uses) || (ammo ? { value: ammo.quantity } : null);
+            (ammo?.isOfType("ammo") && ammo.uses.max > 1 && ammo.uses) ||
+            (ammo && { value: ammo.quantity }) ||
+            (isBombOrGrenade(item) && item.quantity > 1 ? { value: item.quantity } : null);
 
-        this.#isEquipped = !!this.item && (!("isEquipped" in this.item) || this.item.isEquipped);
+        this.#isEquipped = !!item && (!("isEquipped" in item) || item.isEquipped);
 
         this.#drawAuxiliaries =
             this.attackData && "auxiliaryActions" in this.attackData && !this.#isEquipped
                 ? this.attackData.auxiliaryActions.filter(({ annotation }) => {
-                      return annotation && DRAW_AUXILIARY_ANNOTATION.includes(annotation);
+                      return annotation && R.isIncludedIn(annotation, DRAW_AUXILIARY_ANNOTATION);
                   })
                 : [];
     }
@@ -88,7 +92,7 @@ class StrikeShortcut extends AttackShortcut<
     }
 
     get canOpenPopup(): boolean {
-        return !!this.item && (!this.actorIsNPC || !this.isAreaOrAutoFire);
+        return !!this.item && (!this.actorIsNPC || !this.isPureAreaType);
     }
 
     get item(): Maybe<MeleePF2e<CreaturePF2e> | WeaponPF2e<CreaturePF2e>> {
@@ -105,21 +109,35 @@ class StrikeShortcut extends AttackShortcut<
     }
 
     get cost(): ShortcutCost | null {
-        if (!this.attackData) return null;
+        if (!this.attackData) {
+            return null;
+        }
 
-        return {
-            value: this.isEquipped ? this.attackData.glyph : (this.#drawAuxiliaries.at(0)?.actions ?? 1),
-        };
+        if (this.isEquipped) {
+            const glyph = this.attackData.glyph.toLowerCase();
+            return { value: glyph === "a" ? 1 : this.attackData.glyph };
+        }
+
+        return { value: this.#drawAuxiliaries.at(0)?.actions ?? 1 };
     }
 
     get label(): ShortcutLabel | null {
         const attackData = this.attackData;
-        if (!attackData || this.isAreaOrAutoFire) return null;
+        if (!attackData) return null;
+
+        const dcLabel = this.isMainAreaType && /(\d+)\)$/.exec(attackData.variants[0].label)?.[1];
+
+        if (dcLabel) {
+            return {
+                class: "attack",
+                value: dcLabel,
+            };
+        }
 
         const variant0Label = this.actor.isOfType("character")
-            ? this.attackData.variants[0].label
-            : this.attackData.canAttack
-              ? this.attackData.variants[0].label.split(" ")[1]
+            ? attackData.variants[0].label
+            : attackData.canAttack
+              ? attackData.variants[0].label.split(" ")[1]
               : null;
 
         return variant0Label ? { value: variant0Label, class: "attack" } : null;
@@ -139,10 +157,6 @@ class StrikeShortcut extends AttackShortcut<
             : this.item?.isRanged
               ? "fa-solid fa-bow-arrow"
               : "fa-solid fa-sword";
-    }
-
-    get isAreaOrAutoFire(): boolean {
-        return isAreaOrAutoFireType(this.attackData?.type);
     }
 
     get damageType(): string | null {
@@ -179,7 +193,7 @@ class StrikeShortcut extends AttackShortcut<
             return this.#drawAuxiliaries.map((aux) => aux.label).join(" / ");
         }
 
-        const label = this.isAreaOrAutoFire
+        const label = this.isMainAreaType
             ? attackData.variants[0].label.replace(/[\(\)]/g, "")
             : (this.ammo?.name ?? this.damageType ?? super.subtitle);
         const range = this.item ? getActionCategory(this.actor, this.item, this.type)?.tooltip : null;
@@ -203,8 +217,20 @@ class StrikeShortcut extends AttackShortcut<
                   : undefined;
     }
 
+    get isReady(): boolean {
+        return !!this.attackData?.ready;
+    }
+
     get mustBeDrawn(): boolean {
-        return this.#drawAuxiliaries.length > 0 && !this.isEquipped;
+        return !this.isReady && this.#drawAuxiliaries.length > 0 && !this.isEquipped;
+    }
+
+    get isMainAreaType(): boolean {
+        return isAreaOrAutoFireType(this.attackData);
+    }
+
+    get isPureAreaType(): boolean {
+        return isAreaOrAutoFireType(this.attackData) && !this.attackData.altUsages?.length;
     }
 
     use(event: PointerEvent) {
@@ -237,7 +263,7 @@ class StrikeShortcut extends AttackShortcut<
             return;
         }
 
-        if (this.isAreaOrAutoFire) {
+        if (this.isPureAreaType) {
             return attackData.variants[0].roll({ event });
         }
 
@@ -246,14 +272,14 @@ class StrikeShortcut extends AttackShortcut<
                 const isCharacter = this.actor.isOfType("character");
                 const strikeLabel = getStrikeLabel();
 
-                const [areaOrAutoFireAlts, otherAlts] = R.pipe(
-                    attackData.altUsages ?? [],
-                    R.map((data, i) => [i + 1, data] as const),
-                    R.partition(([_i, data]) => isAreaOrAutoFireType(data.type)),
+                const [areaActions, actions] = R.pipe(
+                    [attackData, ...(attackData.altUsages ?? [])],
+                    R.map((data, i) => [i, data] as const),
+                    R.partition(([_i, data]) => isAreaOrAutoFireType(data)),
                 );
 
                 const sections = R.pipe(
-                    [[0, attackData], ...otherAlts] as const,
+                    actions,
                     R.map(([index, { item, variants }]): ShortcutRadialSection => {
                         const variant0Label = isCharacter ? variants[0].label : variants[0].label.split(" ")[1];
 
@@ -274,18 +300,15 @@ class StrikeShortcut extends AttackShortcut<
                     }),
                 );
 
-                if (areaOrAutoFireAlts.length) {
-                    const entries = areaOrAutoFireAlts.map(([index, { glyph, variants }]): ShortcutRadialOption => {
-                        const label = variants[0].label.split(" (")[0];
-                        const icon = Handlebars.helpers.actionGlyph(glyph);
+                for (const [index, { glyph, type, variants }] of areaActions) {
+                    const label = variants[0].label.split(" (")[0];
+                    const icon = Handlebars.helpers.actionGlyph(glyph);
+                    const mode = type === "area-fire" ? "unshift" : "push";
 
-                        return {
-                            value: `${index}-0`,
-                            label: `${label} ${icon}`,
-                        };
+                    sections[0].options[mode]({
+                        value: `${index}-0`,
+                        label: `${label} ${icon}`,
                     });
-
-                    sections[0].options.push(...entries);
                 }
 
                 const ammunition = attackData.ammunition;
@@ -355,8 +378,18 @@ function getStrikeLabel() {
     })());
 }
 
-function isAreaOrAutoFireType(type: Maybe<string>): type is "area-fire" | "auto-fire" {
-    return R.isIncludedIn(type, ["area-fire", "auto-fire"]);
+function isBombOrGrenade(
+    item: Maybe<MeleePF2e<CreaturePF2e> | WeaponPF2e<CreaturePF2e>>,
+): item is WeaponPF2e<CreaturePF2e> {
+    if (!item) return false;
+    if (item.baseType === "grenade") return true;
+
+    const traits = item.traits;
+    return traits.has("alchemical") && traits.has("bomb");
+}
+
+function isAreaOrAutoFireType(data: Maybe<AttackAction | CharacterAttack>): data is AttackAction | CharacterAttack {
+    return !!data && R.isIncludedIn(data.type, ["area-fire", "auto-fire"]);
 }
 
 interface StrikeShortcut extends ShortcutData<typeof zStrikeShortcut> {

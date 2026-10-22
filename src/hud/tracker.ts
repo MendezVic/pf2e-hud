@@ -22,16 +22,14 @@ import {
     R,
     render,
     RolledCombatant,
-    saveNewInitiativeOrder,
     setFlag,
-    setInitiativeFromDrop,
     settingPath,
-    SYSTEM,
     toggleHooksAndWrappers,
     TokenPF2e,
     unsetFlag,
     waitDialog,
 } from "foundry-helpers";
+import { saveNewInitiativeOrder, setInitiativeFromDrop, SYSTEM } from "compat";
 import { getEntryFromHealthData } from "health-status";
 import { getHealthStatusData } from "settings";
 import Sortable, { SortableEvent } from "sortablejs";
@@ -514,14 +512,6 @@ class TrackerPF2eHUD extends BasePF2eHUD<TrackerSettings> {
         event.preventDefault();
         event.stopPropagation();
 
-        type EventAction =
-            | "delay-turn"
-            | "rollInitiative"
-            | "toggle-expand"
-            | "toggleNameVisibility"
-            | "toggleTarget"
-            | "trackerSettings";
-
         const action = target.dataset.action as EventAction;
 
         if (event.button === 2 && action === "rollInitiative") {
@@ -973,6 +963,9 @@ function getDefaultLabels() {
         unknown: localize("tracker.unknown"),
     });
 }
+
+type EventAction =
+    "delay-turn" | "rollInitiative" | "toggle-expand" | "toggleNameVisibility" | "toggleTarget" | "trackerSettings";
 
 type TrackerTexture = {
     img: string;

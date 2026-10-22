@@ -5,10 +5,10 @@ import {
     findItemWithSourceId,
     ImageFilePath,
     R,
-    SYSTEM,
     z,
     ZeroToTwo,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { ElementalBlastsData, getElementalBlastsData } from "hud";
 import { AttackShortcut, zAttackShortcut } from ".";
 import { ShortcutCost, ShortcutData, ShortcutLabel, ShortcutRadialSection } from "..";
@@ -84,7 +84,7 @@ class BlastShortcut extends AttackShortcut<BlastShortcutSchema, AbilityItemPF2e<
 
             if (action) {
                 await applySelfEffect(action);
-                action.toMessage(event);
+                action.toMessage(event, { actualUse: true });
             }
 
             return;

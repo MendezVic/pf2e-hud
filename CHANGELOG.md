@@ -1,3 +1,100 @@
+# 2.57.0
+
+- this release requires you to update the `PF2e Dailies` module to version `4.23.0` if you use it in your world
+- add support for `Spell Server` spellcasting entries added by the `PF2e Dailies` module
+
+# 2.56.2
+
+- localization stuff
+- fix exposed module localize path (from `game.hud.localize`)
+
+# 2.56.1
+
+- localization stuff
+
+# 2.56.0
+
+- `Extras Sidebar`:
+  - you can now create an alternate shortcut version of the `Aid` action
+    - both the `statistic` and the `dc` will be saved
+    - only newly created `Aid` shortcuts will fully use the alternate data
+- `Persistent HUD`:
+  - the `Alliance` button now opens a dialog for you to select the alliance instead of being a `slider`
+
+# 2.55.2
+
+- `Extras Sidebar`:
+  - fix `Grab An Edge` not having `Acrobatics` as a choice
+
+# 2.55.1
+
+- `Actions Sidebar`:
+  - fix exploration actions having the `Use` button instead of the expected toggle
+
+# 2.55.0
+
+- make all the necessary changes to support the newly added roll-option when a spell is actually cast
+- make all the necessary changes to support the new `All Actionable` feature for the `PF2e Toolbelt` module (coming with version `3.56.0`)
+- `Actions Sidebar`:
+  - add `Use` button to all actions
+- fix toggling a stance not sending any message to chat
+
+# 2.54.0
+
+- add an identifier flag to the module's special action messages `Pick Random Target`, `Recall Knowledge`, `Roll Group Perception` and `Use Resolve Point`
+- `Persistent HUD`:
+  - add new `NPC Token Avatar` which uses the token prototype texture instead of the actor image when no avatar is set for a NPC
+
+# 2.53.1
+
+- fix issue with chirurgeon uuid to override medicine skill actions proficiencies
+
+# 2.53.0
+
+- `Avatar Editor`:
+  - now allow manual input of image/video path to be used
+  - add new `Clear` button (replaces the `Cancel` button) which reverts the actor to using the sheet avatar
+
+# 2.52.2
+
+- add Japanese localization (thanks to [counterpost](https://github.com/counterpost))
+
+# 2.52.1
+
+- `Spell Shortcut`:
+  - fix slot and tooltip action cost icon
+
+# 2.52.0
+
+- `Strike Shortcut`:
+  - now display the DC of area-fire weapons in the slot
+  - now display the quantity of alchemical bombs and grenades (if more than `1`)
+  - fix `thrown` weapons with a `reload 0` not being usable without first being `drawn`
+  - fix slot and tooltip not showing the action cost icon
+  - fix being able to strike when holding the weapon in the wrong grip
+  - fix area-fire weapons not showing their strike variants
+
+# 2.51.1
+
+- `Recall Knowledge` extra action:
+  - no longer duplicate lores for untargeted recall knowledge when using an alternate lore statistic
+
+# 2.51.0
+
+- you can now `[Right Click]` on the `Recall Knowledge` extra action to use an alternate statistic
+  - the selected alternate will replace any regular recall knowledge statistic
+  - lores are kept in both the targeted and untargeted versions
+  - you can create a shortcut of an alternate version
+- fix `Recall Knowledge` and `Group Perception Checks` actions asking for manual dice results
+
+# 2.50.0
+
+- `Items Sidebar`:
+  - fix `held` number position and color
+- `Recall Knowledge` extra action:
+  - each roll now includes the `target:mark:xxx` roll options
+  - you can now hover over roll total results to see all the modifiers that were applied for each of them
+
 # 2.49.0
 
 - this is a foundry `14.361` release

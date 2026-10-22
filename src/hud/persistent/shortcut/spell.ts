@@ -3,12 +3,9 @@ import {
     CharacterPF2e,
     ConsumablePF2e,
     CreaturePF2e,
-    itemIsEquipped,
     localize,
     OneToTen,
     R,
-    ROMAN_RANKS,
-    RomanRank,
     SpellCollection,
     SpellPF2e,
     ValueAndMax,
@@ -17,6 +14,7 @@ import {
     zDocumentId,
     zSpellcastingEntryId,
 } from "foundry-helpers";
+import { itemIsEquipped, ROMAN_RANKS, RomanRank } from "compat";
 import { CustomSpellcastingEntry, isAnimistEntry, isFocusCantrip, SPELL_CATEGORIES, SPELL_CATEGORY_TYPES } from "hud";
 import {
     getItemSlug,
@@ -135,7 +133,7 @@ class SpellShortcut extends PersistentShortcut<typeof zSpellShortcut, SpellPF2e<
         }
 
         const isCantrip = spell.isCantrip;
-        const isBroken = !isCantrip && entryData.isCharges && !game.dailies?.active;
+        const isBroken = !isCantrip && entryData.isCharges && !game.dailies;
 
         if (isBroken) {
             return returnDisabled(true, "broken");
@@ -191,10 +189,11 @@ class SpellShortcut extends PersistentShortcut<typeof zSpellShortcut, SpellPF2e<
         }
 
         if (entryData.isStaff) {
+            const key = entryData.isServer ? "spellServers" : "staves";
             const canCast = this.cached(
                 "canCastStaffRank",
                 this.castRank,
-                () => !!game.dailies?.api.canCastRank(this.actor as CharacterPF2e, this.castRank),
+                () => !!game.dailies?.api[key].canCastRank(this.actor as CharacterPF2e, this.castRank),
             );
 
             return returnDisabled(!canCast, "charges");
@@ -328,8 +327,6 @@ class SpellShortcut extends PersistentShortcut<typeof zSpellShortcut, SpellPF2e<
 
         const vessels = getAnimistVesselsData(this.cached, actor);
         const isConsumable = entrySheetData.category === "items";
-        const isFlexible = !!entrySheetData.isFlexible;
-        const isStaff = !!entrySheetData.isStaff;
 
         const consumable =
             isConsumable && this.category === "scroll"
@@ -342,12 +339,13 @@ class SpellShortcut extends PersistentShortcut<typeof zSpellShortcut, SpellPF2e<
             groups: entrySheetData.groups,
             isCharges: entrySheetData.category === "charges",
             isConsumable,
-            isFlexible,
+            isFlexible: !!entrySheetData.isFlexible,
             isFocus: !!entrySheetData.isFocusPool,
             isInnate: !!entrySheetData.isInnate,
             isPrepared: !!entrySheetData.isPrepared,
             isSpontaneous: !!entrySheetData.isSpontaneous,
-            isStaff,
+            isServer: !!entrySheetData.isServer,
+            isStaff: !!entrySheetData.isStaff,
             isVirtual: !!entrySheetData.isVirtual,
             notPrimaryVessel: (spellId: string) => vessels?.entry.id === entryId && !vessels.primary.includes(spellId),
             uses: entrySheetData.uses,
@@ -359,8 +357,7 @@ class SpellShortcut extends PersistentShortcut<typeof zSpellShortcut, SpellPF2e<
 
 function getAnimistVesselsData(cached: ShortcutCache, actor: CreaturePF2e): dailies.AnimistVesselsData | null {
     return cached("animistVesselsData", () => {
-        if (!actor.isOfType("character") || !game.dailies?.active) return null;
-        return game.dailies.api.getAnimistVesselsData(actor) ?? null;
+        return (actor.isOfType("character") && game.dailies?.api.animist.getVesselsData(actor)) || null;
     });
 }
 
@@ -389,6 +386,7 @@ type SpellEntryData = {
     isInnate: boolean;
     isPrepared: boolean;
     isSpontaneous: boolean;
+    isServer: boolean;
     isStaff: boolean;
     isVirtual: boolean;
     groups: CustomSpellcastingEntry["groups"];

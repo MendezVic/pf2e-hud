@@ -21,12 +21,12 @@ import {
     SingleCheckActionVariantData,
     SkillActionOptions,
     SkillSlug,
-    SYSTEM,
     waitDialog,
     ZeroToTwo,
 } from "foundry-helpers";
+import { SYSTEM } from "compat";
 import { getActionIcon } from "foundry-helpers/dist";
-import { createDraggable, ExtrasActionData, FilterValue, SkillActionData, SkillVariants } from "hud";
+import { createDraggable, ExtraAction, ExtrasActionData, FilterValue, SkillActionData, SkillVariants } from "hud";
 
 const ACTION_IMAGES: PartialRecord<string, () => ImageFilePath> = R.mapValues(
     {
@@ -194,63 +194,7 @@ abstract class BaseStatisticAction<
             }
 
             const label = (!isMapVariant && variant?.label) || this.label;
-            const alternates = await waitDialog<{
-                data: Omit<typeof usedOptions, "event">;
-                event: MouseEvent;
-            }>({
-                classes: ["skills"],
-                content: "dialogs/action-alternates",
-                i18n: "dialogs.alternates",
-                data: {
-                    ...usedOptions,
-                    label,
-                    maps: R.times(3, (i) => ({ value: i, label: i })),
-                    statistics: usedOptions.statistic ? getStatistics(actor) : undefined,
-                },
-                onRender: (_event, dialog) => {
-                    const statistic = this.statistic;
-                    const html = dialog.element;
-                    const img = createHTMLElement("img", {
-                        classes: ["drag-img"],
-                        dataset: { tooltip: localize("dialogs.alternates.drag") },
-                    });
-
-                    img.draggable = true;
-                    img.src = this.img;
-
-                    img.addEventListener("dragstart", (event) => {
-                        const dragData = {
-                            img: this.img,
-                            key: this.key,
-                            name: this.label,
-                            sourceId: this.sourceId,
-                            statistic,
-                            type: statistic ? "skillAction" : "extraAction",
-                            variant: statistic && !isMapVariant ? variant?.slug : undefined,
-                            override: {},
-                        };
-
-                        addToObjectIfNonNullish(dragData.override, {
-                            agile: htmlQuery<HTMLInputElement>(html, `[name="agile"]`)?.checked,
-                            statistic: htmlQuery<HTMLSelectElement>(html, `[name="statistic"]`)?.value,
-                        });
-
-                        createDraggable(event, this.img, actor, this.item, {
-                            fromSidebar: dragData,
-                        });
-                    });
-
-                    htmlQuery(html, ".form-footer")?.append(img);
-                },
-                yes: {
-                    callback: async (event, _el, dialog) => {
-                        return {
-                            data: createFormData(dialog.element),
-                            event,
-                        };
-                    },
-                },
-            });
+            const alternates = await this.getAlternates(actor, label, usedOptions, variant?.slug);
 
             if (!alternates) return;
 
@@ -286,13 +230,92 @@ abstract class BaseStatisticAction<
                 statistic: usedOptions.statistic,
                 notes: usedOptions.notes,
             });
-            action.use(rollOptions);
+
+            if (actionKey === "recall-knowledge") {
+                const recallKnowledgeAction = action as Action & { traits: string[] };
+                const originalTraits = recallKnowledgeAction.traits;
+
+                recallKnowledgeAction.traits = originalTraits.filter((trait) => trait !== "secret");
+                try {
+                    await action.use(rollOptions);
+                } finally {
+                    recallKnowledgeAction.traits = originalTraits;
+                }
+            } else {
+                action.use(rollOptions);
+            }
         } else if (action) {
             foundry.utils.mergeObject(rollOptions, {
                 skill: usedOptions.statistic,
             });
             action(rollOptions);
         }
+    }
+
+    getAlternates(
+        actor: ActorPF2e,
+        label: string,
+        usedOptions: BaseStatisticRollOptions & { event: Event },
+        variant?: string,
+    ) {
+        return waitDialog<{
+            data: Omit<typeof usedOptions, "event">;
+            event: MouseEvent;
+        }>({
+            classes: ["skills"],
+            content: "dialogs/action-alternates",
+            i18n: "dialogs.alternates",
+            data: {
+                ...usedOptions,
+                label,
+                maps: R.times(3, (i) => ({ value: i, label: i })),
+                statistics: usedOptions.statistic ? getStatistics(actor) : undefined,
+            },
+            onRender: (_event, dialog) => {
+                const statistic = this.statistic;
+                const html = dialog.element;
+                const img = createHTMLElement("img", {
+                    classes: ["drag-img"],
+                    dataset: { tooltip: localize("dialogs.alternates.drag") },
+                });
+
+                img.draggable = true;
+                img.src = this.img;
+
+                img.addEventListener("dragstart", (event) => {
+                    const dragData = {
+                        img: this.img,
+                        key: this.key,
+                        name: this.label,
+                        sourceId: this.sourceId,
+                        statistic,
+                        type: this instanceof ExtraAction ? "extraAction" : "skillAction",
+                        variant: statistic && R.isNullish(usedOptions.map) ? variant : undefined,
+                        override: {},
+                    };
+
+                    addToObjectIfNonNullish(dragData.override, {
+                        agile: htmlQuery<HTMLInputElement>(html, `[name="agile"]`)?.checked,
+                        dc: htmlQuery<HTMLInputElement>(html, `[name="dc"]`)?.valueAsNumber,
+                        statistic: htmlQuery<HTMLSelectElement>(html, `[name="statistic"]`)?.value,
+                    });
+
+                    createDraggable(event, this.img, actor, this.item, {
+                        fromSidebar: dragData,
+                    });
+                });
+
+                htmlQuery(html, ".form-footer")?.append(img);
+            },
+            yes: {
+                callback: async (event, _el, dialog) => {
+                    return {
+                        data: createFormData(dialog.element),
+                        event,
+                    };
+                },
+            },
+        });
     }
 }
 
@@ -358,6 +381,7 @@ type RawBaseActionData = {
     notes?: (SingleCheckActionRollNoteData & { sf2e: string })[];
     /** item used for description and send-to-chat */
     sourceId: CompendiumItemUUID;
+    statistic?: StatisticType;
     // object refers to map, array refers to actual variants
     variants?: (string | ActionVariant)[] | ActionMapVariant;
 };

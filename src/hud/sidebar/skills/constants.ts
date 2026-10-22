@@ -1,4 +1,5 @@
-import { ImageFilePath, R, SYSTEM } from "foundry-helpers";
+import { SYSTEM } from "compat";
+import { ImageFilePath, R } from "foundry-helpers";
 import { RawBaseActionData, StatisticType } from "..";
 
 const FOLLOW_THE_EXPERT = SYSTEM.itemUuid(
@@ -527,7 +528,6 @@ type SkillActionData = RawBaseActionData & {
     label?: string;
     requireTrained?: boolean;
     rollOptions?: string[];
-    statistic?: StatisticType;
 };
 
 type RawStatisticActionGroup = {
