@@ -72,7 +72,8 @@ class SpellsSidebarPF2eHUD extends SidebarPF2eHUD<SpellPF2e, SpellSidebarItem> {
         if (!actor.isOfType("character")) return;
 
         addListenerAll(html, "[data-staff-charges]", "change", async (el: HTMLInputElement) => {
-            await game.dailies?.api.setStaffChargesValue(actor, el.valueAsNumber);
+            const key = R.isString(el.dataset.server) ? "spellServers" : "staves";
+            await game.dailies?.api[key].setChargesValue(actor, el.valueAsNumber);
         });
 
         addListenerAll(html, `[data-rule-index]`, "change", async (el: HTMLInputElement) => {
@@ -111,11 +112,10 @@ async function getSpellcastingData(this: SpellsSidebarPF2eHUD): Promise<SpellsHu
     });
 
     const spellGroups: SpellGroupData[] = [];
-    const dailiesActive = !!game.dailies?.active;
-    const canUseCharges = dailiesActive;
+    const canUseCharges = !!game.dailies;
     const focusPool = createSlider("focus", actor.system.resources?.focus ?? { value: 0, max: 0 });
 
-    const vesselsData = (dailiesActive && game.dailies?.api.getAnimistVesselsData(actor)) || {
+    const vesselsData = game.dailies?.api.animist.getVesselsData(actor) || {
         entry: undefined,
         primary: [] as string[],
     };
@@ -140,7 +140,16 @@ async function getSpellcastingData(this: SpellsSidebarPF2eHUD): Promise<SpellsHu
         const [categoryType, consumable] =
             entry.category === "items" && item
                 ? [entry.isVirtual ? "virtual" : item.category, item]
-                : [entry.isFlexible ? "flexible" : entry.isStaff ? "staff" : entry.category, undefined];
+                : [
+                      entry.isFlexible
+                          ? "flexible"
+                          : entry.isServer
+                            ? "server"
+                            : entry.isStaff
+                              ? "staff"
+                              : entry.category,
+                      undefined,
+                  ];
 
         const category = SPELL_CATEGORIES[categoryType as SpellCategoryType];
         if (!category) continue;
@@ -301,12 +310,7 @@ interface SpellsSidebarPF2eHUD {
 }
 
 type EventAction =
-    | "cast-spell"
-    | "dailies-retrain"
-    | "draw-item"
-    | "slider"
-    | "toggle-signature"
-    | "toggle-slot-expended";
+    "cast-spell" | "dailies-retrain" | "draw-item" | "slider" | "toggle-signature" | "toggle-slot-expended";
 
 type SpellGroupData = {
     label: string;
@@ -318,8 +322,9 @@ type SpellGroupData = {
 type CustomSpellcastingEntry = Omit<SpellcastingSheetData, "category" | "groups"> & {
     isAnimist?: boolean;
     category: SpellcastingCategory | "charges";
-    isStaff: boolean | undefined;
-    isVirtual: boolean | undefined;
+    isServer?: boolean;
+    isStaff?: boolean;
+    isVirtual?: boolean;
     uses?: ValueAndMax;
     groups: Array<
         Omit<SpellcastingSlotGroup, "active"> & {

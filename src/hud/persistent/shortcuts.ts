@@ -524,7 +524,7 @@ class PersistentShortcutsPF2eHUD extends PersistentPartPF2eHUD {
 }
 
 function createShortcutCache(): ShortcutCache {
-    const cached: ShortcutCacheData = {};
+    const cached = {} as ShortcutCacheData;
 
     function getShortcutCache(
         ...args: Readonly<[...path: string[], defaultValue: () => Promise<unknown>]>
@@ -598,17 +598,17 @@ type ShortcutCache = { get values(): ShortcutCacheData } & {
 };
 
 type ShortcutCacheData = {
-    animistCollection?: SpellCollection<CreaturePF2e> | null;
-    animistVesselsData?: dailies.AnimistVesselsData | null;
-    canCastStaffRank?: Partial<Record<OneToTen, boolean>>;
-    canUseStances?: boolean | null;
-    commanderTactics?: string[] | null;
-    explorations?: string[];
-    getActionMacro?: toolbelt.Api["actionable"]["getActionMacro"] | null;
-    hasItemWithSourceId?: Record<DocumentUUID, boolean>;
-    isTacticAbility?: dailies.Api["isTacticAbility"] | null;
-    shortcutSpellData?: Record<string, SpellEntryData | null>;
-    spellcastingEntry?: Record<string, CustomSpellcastingEntry | null>;
+    animistCollection: SpellCollection<CreaturePF2e> | null;
+    animistVesselsData: dailies.AnimistVesselsData | null;
+    canCastStaffRank: Partial<Record<OneToTen, boolean>>;
+    canUseStances: boolean | null;
+    commanderTactics: string[] | null;
+    explorations: string[];
+    getActionMacro: toolbelt.Api["actionable"]["getActionMacro"] | null;
+    hasItemWithSourceId: Record<DocumentUUID, boolean>;
+    isTacticAbility: dailies.Api["commander"]["isTacticAbility"] | null;
+    shortcutSpellData: Record<string, SpellEntryData | null>;
+    spellcastingEntry: Record<string, CustomSpellcastingEntry | null>;
 };
 
 type MacroSlotData = {

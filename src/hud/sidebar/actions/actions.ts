@@ -60,7 +60,7 @@ class ActionsSidebarAction extends BaseSidebarItem<FeatPF2e<ActorPF2e> | Ability
     }
 
     removeEffect() {
-        this.usage?.effect?.delete();
+        this.usage.effect?.delete();
     }
 
     toggleExporation() {
@@ -130,7 +130,7 @@ async function getSidebarActionsData(this: ActionsSidebarPF2eHUD): Promise<Actio
     const useLabel = (_cached.useLabel ??= game.i18n.localize("PF2E.Action.Use"));
     const removeEffect = (_cached.removeEffect ??= localize("sidebar.removeEffect"));
     const getActionMacro = game.toolbelt?.api.actionable.getActionMacro;
-    const tactics = isCharacter && game.dailies?.active ? game.dailies?.api.getCommanderTactics(actor) : undefined;
+    const tactics = (isCharacter && game.dailies?.api.commander.getTactics(actor)) || undefined;
 
     const processAction = async (item: AbilityItemPF2e<ActorPF2e> | FeatPF2e<ActorPF2e>, virtual: boolean) => {
         const traits = item.system.traits.value;
@@ -166,10 +166,9 @@ async function getSidebarActionsData(this: ActionsSidebarPF2eHUD): Promise<Actio
         const resource = crafting ? getActionResource(item) : undefined;
         const frequency = !isExploration && !resource ? getActionFrequency(item) : undefined;
         const macro = !isExploration && actionableEnabled && (await getActionMacro?.(item));
-        const usable = !!(frequency || selfEffect || crafting || macro);
         const effect = selfEffect && findItemWithSourceId(actor, selfEffect.uuid, "effect");
 
-        const usage: MaybeFalsy<ActionUsage> = usable && {
+        const usage: ActionUsage = {
             disabled: item.crafting ? resource?.value === 0 : frequency?.value === 0,
             effect,
             label: effect
@@ -177,18 +176,14 @@ async function getSidebarActionsData(this: ActionsSidebarPF2eHUD): Promise<Actio
                 : `${useLabel} <span class="action-glyph">${getActionGlyph(actionCost)}</span>`,
         };
 
-        const exploration = isExploration && {
-            active: explorations.includes(itemId),
-        };
-
         const untrainedTacticBtn =
-            tactics?.length && game.dailies?.api.isTacticAbility(item) && !tactics.includes(itemId)
+            tactics?.length && game.dailies?.api.commander.isTacticAbility(item) && !tactics.includes(itemId)
                 ? game.dailies?.api.createRetrainBtn(actor, itemId, "tactic")
                 : undefined;
 
         const data: ActionData = {
             disabled: !!untrainedTacticBtn,
-            exploration,
+            exploration: isExploration && { active: explorations.includes(itemId) },
             frequency,
             id: itemId,
             img: getActionImg(item, macro),
@@ -196,7 +191,7 @@ async function getSidebarActionsData(this: ActionsSidebarPF2eHUD): Promise<Actio
             resource,
             toggles: item.system.traits.toggles?.getSheetData() ?? [],
             untrainedTactic: untrainedTacticBtn?.outerHTML,
-            usage: usage || null,
+            usage,
             virtual,
         };
 
@@ -358,7 +353,7 @@ type ActionData = {
     resource: Maybe<LabeledValueAndMax & { slug: string }>;
     toggles: TraitToggleViewData[];
     untrainedTactic: string | undefined;
-    usage: Maybe<ActionUsage>;
+    usage: ActionUsage;
     virtual: boolean;
 };
 

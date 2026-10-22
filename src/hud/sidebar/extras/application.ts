@@ -43,7 +43,7 @@ class ExtrasSidebarPF2eHUD extends SidebarPF2eHUD<AbilityItemPF2e | ItemPF2e, Ex
         });
 
         const dailies = isCharacter &&
-            game.dailies?.active && {
+            game.dailies && {
                 canPrep: game.dailies.api.canPrepareDailies(actor),
                 tooltip: game.dailies.api.getDailiesSummary(actor),
             };
@@ -81,12 +81,14 @@ class ExtrasSidebarPF2eHUD extends SidebarPF2eHUD<AbilityItemPF2e | ItemPF2e, Ex
         const action = target.dataset.action as EventAction;
 
         if (action === "roll-statistic-action") {
-            const { variant } = target.dataset as Record<string, string>;
-            if (!variant && event.button !== 0) return;
+            const { key, variant } = target.dataset as Record<string, string>;
+            const item = this.getSidebarItemFromElement<ExtrasSidebarItem>(target);
 
-            return this.getSidebarItemFromElement<ExtrasSidebarItem>(target)?.roll(actor, event, {
-                variant,
-            });
+            return (
+                item &&
+                (key === "recall-knowledge" || variant || event.button === 0) &&
+                item.roll(actor, event, { variant })
+            );
         }
 
         if (event.button !== 0) return;

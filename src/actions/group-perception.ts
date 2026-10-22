@@ -1,5 +1,5 @@
 import { SYSTEM } from "compat";
-import { localize, R, render, ZeroToFour } from "foundry-helpers";
+import { localize, MODULE, R, render, ZeroToFour } from "foundry-helpers";
 import { ControlledToken } from ".";
 
 const SEARCH_UUID = SYSTEM.itemUuid(
@@ -32,6 +32,7 @@ async function rollGroupPerception() {
 
             const roll = await perception.roll({
                 createMessage: false,
+                messageMode: "blind",
                 skipDialog: true,
             });
 
@@ -52,6 +53,7 @@ async function rollGroupPerception() {
     const ChatMessagePF2e = getDocumentClass("ChatMessage");
 
     ChatMessagePF2e.create({
+        flags: { [MODULE.id]: { action: "group-perception" } },
         content: await render("group-perception", { actors: data }),
         whisper: ChatMessage.getWhisperRecipients("GM") as any,
     });

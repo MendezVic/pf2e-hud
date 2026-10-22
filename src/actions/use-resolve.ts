@@ -1,5 +1,5 @@
 import { SYSTEM } from "compat";
-import { ActorPF2e, findItemWithSourceId, localize, waitDialog } from "foundry-helpers";
+import { ActorPF2e, findItemWithSourceId, localize, MODULE, waitDialog } from "foundry-helpers";
 
 const RESOLVE_UUID = SYSTEM.itemUuid(
     "Compendium.pf2e.feats-srd.Item.jFmdevE4nKevovzo",
@@ -69,6 +69,7 @@ async function useResolve(actor: Maybe<ActorPF2e>) {
 
     const ChatMessagePF2e = getDocumentClass("ChatMessage");
     ChatMessagePF2e.create({
+        flags: { [MODULE.id]: { action: "use-resolve" } },
         content: message,
         author: game.user.id,
         speaker: ChatMessagePF2e.getSpeaker({ actor }),
