@@ -31,7 +31,9 @@ jobs:
       - name: Read module version
         id: module
         shell: bash
-        run: echo "version=$(node --input-type=module -e \"import manifest from './module.json' with { type: 'json' }; console.log(manifest.version)\")" >> "$GITHUB_OUTPUT"
+        run: |
+          version="$(node --input-type=module -e \"import manifest from './module.json' with { type: 'json' }; console.log(manifest.version)\")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Ensure this version has not already been released
         env:
