@@ -32,7 +32,7 @@ jobs:
         id: module
         shell: bash
         run: |
-          version="$(node -p \"require('./module.json').version\")"
+          version="$(node -p 'require("./module.json").version')"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Ensure this version has not already been released
